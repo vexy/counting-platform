@@ -37,7 +37,6 @@ body {
 }
 
 main {
-    position: relative;
     min-height: 100vh;
 
     display: flex;
@@ -81,7 +80,9 @@ dialog {
     align-items: center;
     border: 0.5px solid #9eb4b4;
     border-radius: 15px;
-    box-shadow: 1px 2.5px 10px 3px #9eb5b5
+    box-shadow: 1px 2.5px 10px 3px #9eb5b5;
+    padding: 1rem;
+    text-align: center;
 }
 
 dialog::backdrop {

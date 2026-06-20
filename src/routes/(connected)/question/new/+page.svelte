@@ -10,11 +10,11 @@
 
     let title_options: string[] = ['','','','',''];
     
-    export let form = null;
+    let { form } = $props();
 
     async function completeAddition() {
-        // close the dialog box
-        form = null;
+        // just close the dialog box
+        form = null
         showDialog(false)
     }
 </script>
@@ -25,7 +25,7 @@
     <dialog id="dialogBox">
         <p>Ваше питање је постављено на Инфопортал платформу !</p>
 
-        <button on:click={() => completeAddition()}>Затвори</button>
+        <button onclick={() => completeAddition()}>Затвори</button>
     </dialog>
 {/if}
 

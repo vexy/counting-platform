@@ -1,5 +1,6 @@
 import { QuestionService } from '$lib/QuestionsService';
-import { VOTE_OPTIONS } from '$models/Models';
+import { VOTE_OPTIONS } from '$models/Question';
+import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 export const actions = {
@@ -29,13 +30,14 @@ export const actions = {
 export const load = (async ({ locals: {supabase}, params, parent }) => {
     await parent();
 
-    // TODO: guard from errors and bad slugs
-    // extract question slug
+    // extract slug and guard against faulty inputs
     const questionID = Number(params.slug);
+    if(isNaN(questionID)) {
+        error(404);
+    }
     console.debug("QuestionID to load: ", questionID);
 
-    // initialize question service
-    // and setup return values
+    // initialize question service and setup return values
     const q_service = new QuestionService(supabase);
     const hasAnsweredQuestion = await q_service.hasAnsweredQuestion(questionID)
     let questionMeta = null
@@ -44,12 +46,13 @@ export const load = (async ({ locals: {supabase}, params, parent }) => {
     // check if user has answered this question
     // and load appropriate dataset
     if(hasAnsweredQuestion) {
-        questionScores = await q_service.loadQuestionScores(questionID)
+        questionScores = q_service.loadQuestionScores(questionID)
     } else {
-        questionMeta = await q_service.loadQuestionMeta(questionID)
+        questionMeta = q_service.loadQuestionMeta(questionID)
     }
 
     return {
+        isAnswered: hasAnsweredQuestion,
         meta: questionMeta,
         scores: questionScores
     };

@@ -1,9 +1,9 @@
 import { QuestionService } from '$lib/QuestionsService.js';
+import type { Actions } from './$types';
 import { fail } from '@sveltejs/kit';
 
 export const actions = {
     postQuestion: async ({ request, locals: { supabase } }) => {
-        //parse and check for data
         const formData = await request.formData();
         
         // check for title
@@ -47,4 +47,4 @@ export const actions = {
             })
         }
     }
-}
+} satisfies Actions

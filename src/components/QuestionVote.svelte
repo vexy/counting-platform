@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { VOTE_OPTIONS, type QuestionMeta } from '$models/Models';
+    import { VOTE_OPTIONS, type QuestionMeta } from '$models/Question';
     import { fade } from 'svelte/transition';
 
     let { form, meta }: { form: FormData, meta: QuestionMeta } = $props();
@@ -12,6 +12,8 @@
         showAdditionals = !showAdditionals;
     }
 </script>
+
+<h1>{meta.title}</h1>
 
 <form method="POST" action="/question/{meta.id}?/commitOption">
     {#each meta.question_options as voteOption, index }

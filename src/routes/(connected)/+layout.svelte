@@ -17,7 +17,6 @@
         
         display: flex;
         flex-direction: column;
-        justify-content: space-evenly;
         overflow-y: auto;
         flex-grow: 1;
         padding-bottom: 10px;

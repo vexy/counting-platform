@@ -1,8 +1,8 @@
 <script lang="ts">
-    import type { QuestionOverview } from '$models/Models';
+    import Loader from '$components/Loader.svelte';
+    import type { QuestionOverview } from '$models/Question.js';
 
     let { data } = $props();
-    const questions = $derived(data.allQuestions);
 
     let searchTerm: string = $state('');
     let showResetArea: boolean = $state(false);
@@ -36,7 +36,8 @@
 
 <search-area>
     <div>
-        <input 
+        <input
+            name="search-bar"
             type="text"
             placeholder="Претражите наслов питања"
             bind:value={searchTerm}
@@ -66,22 +67,26 @@
     {/if}
 </search-area>
 
-<questions-table>
-{#await questions then questionSet}
-    {#each (hasSearchResults ? tableData : questionSet) as questionItem }
-    <!-- NOTE: created_at field can be used somewhere -->
-    <tr>
-        <td>
-            <a href='/question/{questionItem.id}'>{questionItem.title}</a>
-            <voters-count>
-                <img src="/people.svg" alt="vote_count" height="21px" width="21px" />
-                { questionItem.voters_count.length }
-            </voters-count>
-        </td>
-    </tr>
-    {/each}
+{#await data.allQuestions}
+    <Loader message="Учитавање питања..." />
+{:then questionSet}
+    <questions-table>
+        {#each (hasSearchResults ? tableData : questionSet) as questionItem }
+            <a class='article' type="button" href="/question/{questionItem.id}">
+                <!-- <img src="/people.svg" alt="vote_count" height="21px" width="21px" /> -->
+                <div class='question-title'>{questionItem.title}</div>
+                <metadata>
+                    {new Date(questionItem.created_at).toLocaleDateString()}
+
+                    <div>
+                        <img src="/people.svg" alt="vote_count" height="21px" width="21px" />
+                        { questionItem.voters_count.length }
+                    </div>
+                </metadata>
+            </a>
+        {/each}
+    </questions-table>
 {/await}
-</questions-table>
 
 <style>
     search-area {
@@ -142,41 +147,60 @@
     }
 
     questions-table {
-        margin-top: 0.25rem;
-        width: 100vw;
-
+        margin-top: 0.3rem;
         display: flex;
         flex-direction: column;
-        gap: 7px;
+        gap: 10px;
+        margin-bottom: 15px;
     }
 
-    td {
-        margin-inline: 0.125rem;
+    .article {
+        margin-inline: 0.25rem;
+        padding: 10px;
 
         display: flex;
         flex-wrap: nowrap;
-        flex-direction: row;
+        flex-direction: column;
+        gap: 3.5px;
 
-        justify-content: space-between;
+        border-radius: 15px;
+        border: 0.8px gray solid;
+
+        text-decoration: none;
+    }
+
+    .article:hover {
+        box-shadow: 1px 2.5px 8px 3px #9eb5b5;
+    }
+    .article:hover > .question-title {
+        font-size: 113%;
+    }
+
+    .article
+        :visited, :active {
+        color: inherit;
     }
     
-    a {
+    .question-title {
+        flex-grow: 1;
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
-        margin-inline-start: 0.25em;
         font-size: 110%;
+
+        color: var(--blue-dark);
     }
 
-    a:hover {
-        font-weight: 500;
-    }
-
-    voters-count {
-        min-width: 45px;
-        margin-inline: 0.15rem;
+    metadata {
         display: flex;
         align-items: center;
-        gap: 0.25rem;
+        justify-content: space-between;
+        color: var(--footer);
+    }
+
+    metadata > div {
+        display: flex;
+        align-items: center;
+        gap: 5px;
     }
 </style>

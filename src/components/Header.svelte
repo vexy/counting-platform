@@ -50,6 +50,5 @@
         max-height: 35px;
         color: var(--white);
         background: #005c22;
-        margin-right: 0.35rem;
     }
 </style>

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { QuestionScores } from "$models/Models";
+    import type { QuestionScores } from "$models/Question";
     import Chart from "chart.js/auto";
 	
     const { chartData } : { chartData: QuestionScores } = $props();

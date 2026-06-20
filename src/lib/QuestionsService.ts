@@ -3,9 +3,9 @@ import type {
     QuestionOverview,
     QuestionMeta,
     QuestionScores,
-    Stats,
     VOTE_OPTIONS
-} from "$models/Models";
+} from "$models/Question";
+import type { Stats } from "$models/Stats";
 
 import { createHash } from 'node:crypto'
 
@@ -24,12 +24,12 @@ export class QuestionService {
     /**
      * Returns latest website usage statistical data
      * @returns `Stats` object containing results
-     */
+    */
     async getWebsiteStats(): Promise<Stats> {
         const { data, error } = await this.supaInstance
             .from(this.STATS_TABLE)
             .select()
-            .returns<Stats>()
+            .single()
 
         // check for errors
         if(error) { return Promise.reject(error); }
@@ -43,7 +43,7 @@ export class QuestionService {
      * @param title Question title
      * @param options Array of strings representing question voting options 
      * @returns `true` in case of success
-     */
+    */
     async addQuestion(title: string, options: string[]): Promise<boolean> {
         const { data, error } = await this.supaInstance
             .from(this.QUESTIONS_TABLE)
@@ -88,7 +88,7 @@ export class QuestionService {
     /**
      * Fetches all the questions of the system
      * @returns `QuestionSummary[]` array of question objects
-     */
+    */
     async fetchAllQuestions(): Promise<QuestionOverview[]> {
         const { data, error } = await this.supaInstance
             .from(this.QUESTIONS_TABLE)
@@ -100,9 +100,12 @@ export class QuestionService {
                     question_id
                 )
             `)
+            .overrideTypes<Array<QuestionOverview>>()
 
         // check for errors
         if(error) {
+            console.error("Error during fetching all questions:")
+            console.error(error)
             return Promise.reject(error);
         }
 
@@ -122,30 +125,10 @@ export class QuestionService {
     }
 
     /**
-     * Loads and returns `QuestionMeta` for given question ID
-     * @param questionID ID of the question
-     * @returns `QuestionMeda` object
-     */
-    async loadQuestionMeta(questionID: number): Promise<QuestionMeta> {
-        const { data, error } = await this.supaInstance
-            .from(this.QUESTIONS_TABLE)
-            .select()
-            .eq('id', questionID)
-            .returns<QuestionMeta>()
-            .maybeSingle();
-        
-        // check for errors
-        if(error) { return Promise.reject(error) }
-
-        // return the success
-        return Promise.resolve(data);
-    }
-
-    /**
      * Checks if given question was answered by currently logged user
      * @param questionID ID of the question 
      * @returns `true` if given question has already been answered by current user
-     */
+    */
     async hasAnsweredQuestion(questionID: number): Promise<boolean> {
         // get commitment hash
         const commitmentHash = await this.getCommitHash(questionID);
@@ -165,11 +148,33 @@ export class QuestionService {
     }
 
     /**
+     * Loads and returns `QuestionMeta` for given question ID
+     * @param questionID ID of the question
+     * @returns `QuestionMeda` object
+    */
+    async loadQuestionMeta(questionID: number): Promise<QuestionMeta> {
+        // console.debug("Loading question meta:", questionID)
+        const { data, error } = await this.supaInstance
+            .from(this.QUESTIONS_TABLE)
+            .select()
+            .eq('id', questionID)
+            .maybeSingle()
+            .overrideTypes<QuestionMeta>()
+        
+        // check for errors
+        if(error) { return Promise.reject(error) }
+
+        // return the success
+        return Promise.resolve(data);
+    }
+
+    /**
      * Loads the scores for specified question
      * @param questionID ID of the question 
      * @returns `QuestionScore` model containing scores
-     */
+    */
     async loadQuestionScores(questionID: number): Promise<QuestionScores> {
+        // console.debug("Loading question scores:", questionID)
         const { data, error } = await this.supaInstance
             .from(this.QUESTIONS_TABLE)
             .select(`
@@ -212,7 +217,7 @@ export class QuestionService {
      * @param questionID ID of the question to vote fore
      * @param vote_option `VOTE_OPTIONS` enum representing the actual user's choice
      * @returns `true` in case of success; `error` object in case of various errors
-     */
+    */
     async commitQuestionVote(questionID: number, vote_option: VOTE_OPTIONS): Promise<boolean> {
         // 1. pull out column name
         const columnName = vote_option.toString().toLowerCase();
@@ -287,7 +292,7 @@ export class QuestionService {
      * Helper method that computes commit hash
      * @param questionID ID of the question
      * @returns A `string` digest of the particular question
-     */
+    */
     private async getCommitHash(questionID: number): Promise<string> {
         // get the user info
         const { data: { user }, error } = await this.supaInstance.auth.getUser();

@@ -1,6 +1,6 @@
 {
 	"name": "infoportal-full-solution",
-	"version": "1.6",
+	"version": "1.8",
 	"private": true,
 	"author": {
 		"name": "Vëx",
@@ -18,7 +18,7 @@
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-vercel": "^5.10.3",
-		"@sveltejs/kit": "^2.64.0",
+		"@sveltejs/kit": "^2.66.0",
 		"@sveltejs/vite-plugin-svelte": "^4.0.4",
 		"@types/eslint": "^9.6.1",
 		"chart.js": "^4.5.1",
@@ -28,12 +28,12 @@
 		"svelte": "^5.56.3",
 		"svelte-check": "^4.6.0",
 		"typescript": "^5.9.3",
-		"typescript-eslint": "^8.61.0",
+		"typescript-eslint": "^8.61.1",
 		"vite": "^5.4.21"
 	},
 	"type": "module",
 	"dependencies": {
 		"@supabase/ssr": "^0.5.2",
-		"@supabase/supabase-js": "^2.108.1"
+		"@supabase/supabase-js": "^2.108.2"
 	}
 }

@@ -8,36 +8,40 @@
 </svelte:head>
 
 <script lang="ts">
+    import Loader from "$components/Loader.svelte";
     import PlatformLogo from "$components/PlatformLogo.svelte";
 
     let { data } = $props();
-
-    let stats = $derived(data.statsObject);
 </script>
 
 <section>
     <PlatformLogo />
     <h1>Статистика платформе</h1>
 
-    <summary>
-        <div>
-            <p>Број регистрованих корисника:</p>
-            <span>{stats.users_count}</span>
-        </div>
-        <div>
-            <p>Број постављених питања:</p>
-            <span>{stats.questions_count}</span>
-        </div>
-    </summary>
+    {#await data.stats}
+        <Loader message='Учитавање статистике...' />
+    {:then stats}         
+        <summary>
+            <div>
+                <p>Број регистрованих корисника:</p>
+                <span>{stats.users_count}</span>
+            </div>
+            <div>
+                <p>Број постављених питања:</p>
+                <span>{stats.questions_count}</span>
+            </div>
+        </summary>
 
-    <p>Топ 5 земаља из које долазе корисници:</p>
-    <ol>
-        <li>{stats.country1}</li>
-        <li>{stats.country2}</li>
-        <li>{stats.country3}</li>
-        <li>{stats.country4}</li>
-        <li>{stats.country5}</li>
-    </ol>
+        <p>Топ 5 земаља из које долазе корисници:</p>
+        <ol>
+            <li>{stats.country1}</li>
+            <li>{stats.country2}</li>
+            <li>{stats.country3}</li>
+            <li>{stats.country4}</li>
+            <li>{stats.country5}</li>
+        </ol>
+
+    {/await}
 
     <i>Статистика се освежава једном недељно</i>
 </section>

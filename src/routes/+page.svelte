@@ -1,12 +1,63 @@
+<svelte:head>
+	<script src="https://accounts.google.com/gsi/client" async defer onload={googleLoaded}></script>
+</svelte:head>
+
 <script lang="ts">
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
     import { bounceIn } from "svelte/easing";
     import { blur, fade } from "svelte/transition";
 
+    // google signin button UI helpers
+    let hasGoogleLoaded = $state(false);
+    let isMounted = $state(false);
+    //
     let showSubtitle = $state(false);
 
-    async function handleGoogleLogin(response) {
+    onMount(async () => {
+		if (hasGoogleLoaded) showGoogleSigninButton();
+		isMounted = true;
+
+        showSubtitle = true
+	});
+
+	async function showGoogleSigninButton() {
+		// TODO: Add nonce later
+		google.accounts.id.initialize({
+			client_id: "618627880154-3v3ojejgm2que1eijc2msq8jrvbcqpsm.apps.googleusercontent.com",
+			callback: handleGoogleLogin,
+			use_fedcm_for_prompt: true	// will be deprecated at some point (!)
+
+			// code below is causing trouble
+			// and is commented out until further investigation
+
+			//FIXME:
+
+			// use_fedcm_for_button: true
+			// nonce: hashedNonce,
+			// params: {
+			// 	nonce: hashedNonce
+			// }
+		});
+
+		google.accounts.id.renderButton(document.getElementById('googleSignInButton'), {
+			theme: 'outline',
+			size: 'large',
+			width: 320,
+			text: 'continue_with',
+			shape: 'pill'
+		});
+
+		// TODO: Removed Google FedCM signin button
+		// google.accounts.id.prompt();
+	}
+
+	async function googleLoaded() {
+		hasGoogleLoaded = true;
+		if (isMounted) await showGoogleSigninButton();
+	}
+
+    async function handleGoogleLogin(response: { credential: string }) {
         // check if there's any response
         if(response) {
             // extract the response and initiate server authentication
@@ -14,7 +65,7 @@
 
             const loginResponse = await fetch(`/?auth=${credential}`, { method: 'POST' });
             if(loginResponse.redirected) {
-                console.debug("Auth success, redirecting to: ", loginResponse.url);
+                console.info("Auth success, redirecting to: ", loginResponse.url);
                 await goto(loginResponse.url);
                 return
             }
@@ -25,32 +76,6 @@
         // generically just show error (as we haven't received any login response)
         await goto('/auth-error');
     }
-
-    onMount(async () => {
-        //TODO: push to list if there's active session
-
-        // initialize google client API
-        google.accounts.id.initialize({
-          client_id: "618627880154-3v3ojejgm2que1eijc2msq8jrvbcqpsm.apps.googleusercontent.com",
-          callback: handleGoogleLogin,
-          use_fedcm_for_prompt: true
-        });
-
-        // render button
-        google.accounts.id.renderButton(
-          document.getElementById("googleSignInButton"),
-            {
-                theme: "outline",
-                size: "large",                
-            }
-        );
-
-        // also display the One Tap dialog
-        google.accounts.id.prompt();
-
-        //trigger animation display
-        showSubtitle = true
-    })
 </script>
 
 <img

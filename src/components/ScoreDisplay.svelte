@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { VOTE_OPTIONS, type QuestionScores } from '$models/Models';
+    import { VOTE_OPTIONS, type QuestionScores } from '$models/Question';
     import { goto } from '$app/navigation';
     import Chart from '$components/Chart.svelte';
 
@@ -31,7 +31,25 @@
     function switchDataDisplay() {
         showChart = !showChart
     }
+
+    async function share() {
+        const shareText = `Које је Ваше мишљење ?
+        Гласајте поводом овог и много других питања на Инфопортал платформи.
+        `
+
+		if (navigator.share) {
+			try {
+				await navigator.share({ title: scores.title, text: shareText, url: location.href });
+			} catch (err) {
+				if ((err as Error).name !== 'AbortError') console.error(err);
+			}
+		} else {
+			await navigator.clipboard.writeText(location.href);
+		}
+	}
 </script>
+
+<h1>{scores.title}</h1>
 
 <score-container>
     {#if showChart}
@@ -78,23 +96,31 @@
         <!-- <meter min="0" max="100" value={questionScores[index]} /> -->
     </totals>
 
-    <button-section>
-        <!-- TODO: add share button -->
-        <button class='chart-button' onclick={() => {switchDataDisplay()}}>
-            {#if showChart}
-                <img class='chart-images' src="/bar-chart.svg" alt="Show bar chart" />
-                <span>Прикажи статистику</span>
-            {:else}
-                <img class='chart-images' src='/pie-chart.svg' alt="Show pie chart" />
-                <span>Прикажи графикон</span>
-            {/if}
-        </button>
-        <button onclick={() => { goto('/list') }}>Назад</button>
-    </button-section>
-
 </score-container>
 
+<button-section>
+    <button class='chart-button' onclick={() => {switchDataDisplay()}}>
+        {#if showChart}
+            <img class='chart-images' src="/bar-chart.svg" alt="Show bar chart" />
+            <span>Прикажи статистику</span>
+        {:else}
+            <img class='chart-images' src='/pie-chart.svg' alt="Show pie chart" />
+            <span>Прикажи графикон</span>
+        {/if}
+    </button>
+
+    <div>
+        <button onclick={share}>Подели</button>
+        <button onclick={() => { goto('/list') }}>Назад</button>
+    </div>
+</button-section>
+
 <style>
+    h1 {
+        margin-inline: 1rem;
+        font-size: revert;
+    }
+
     score-container {
         padding-inline: 2rem;
         margin-inline: auto;
@@ -148,13 +174,20 @@
 
     button-section {
         display: flex;
-        justify-content: space-between;
-        margin-block: 1.5rem;
+        flex-direction: column;
         align-items: center;
+        gap: 1rem;
+        padding-block: 1.5rem;
+        margin-bottom: 15px;
     }
 
     button-section > button > span {
         font-size: smaller;
+    }
+
+    button-section > div {
+        display: inline-flex;
+        gap: 2rem;
     }
 
     .chart-button {

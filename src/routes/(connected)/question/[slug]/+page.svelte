@@ -1,37 +1,28 @@
 <svelte:head>
     <meta name="description" content="Infoportal.app | Ваша питања, одговори, ставови и још много тога." />
     <meta name="keywords" content="people, question, opinion, vote, poll, survey, results, infoportal">
-
-    <title>Инфопортал - {getPageTitle()}</title>
 </svelte:head>
 
 <script lang="ts">
     import QuestionVote from '$components/QuestionVote.svelte';
     import ScoreDisplay from '$components/ScoreDisplay.svelte';
+    import type { QuestionScores, QuestionMeta } from '$models/Question';
+    import Loader from '$components/Loader.svelte';
 
     let { data } = $props();
-
-    let meta = $derived(data.meta);
-    let scores = $derived(data.scores);
-
-    function getPageTitle() {
-        return meta?.title || scores?.title;
-    }
 </script>
 
-<h1>{getPageTitle()}</h1>
-
  <!-- check what layout to use -->
-{#if scores}
-    <ScoreDisplay scores={scores} />
+{#if data.isAnswered}
+    {#await data.scores}
+        <Loader message='Loading scores...' />
+    {:then scores}
+        <ScoreDisplay scores={scores as QuestionScores} />
+    {/await}
 {:else}
-    <QuestionVote form={null} meta={meta} />
+    {#await data.meta}
+        <Loader message='Loading question...' />
+    {:then meta}
+        <QuestionVote form={null} meta={meta as QuestionMeta} />
+    {/await}
 {/if}
-
-<style>
-    h1 {
-        font-size: 1.65rem;
-        text-align: center;
-        margin-inline: 1rem;
-    }
-</style>
